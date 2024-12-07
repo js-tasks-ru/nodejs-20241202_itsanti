@@ -1,15 +1,19 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Query, UsePipes, ValidationPipe } from "@nestjs/common";
 import { TasksService } from "./tasks.service";
-import { TaskStatus } from "./task.model";
+import { QueryTaskDto } from "./dto/query-task.dto";
 
 @Controller("tasks")
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  getTasks(
-    @Query("status") status?: TaskStatus,
-    @Query("page") page?: number,
-    @Query("limit") limit?: number,
-  ) {}
+  @UsePipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }))
+  getTasks(@Query() query: QueryTaskDto) {
+    const {status, page, limit} = query;
+    return this.tasksService.getFilteredTasks(status, page, limit);
+  }
 }
